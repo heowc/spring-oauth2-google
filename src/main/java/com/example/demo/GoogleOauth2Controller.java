@@ -7,10 +7,7 @@ import java.util.UUID;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.codec.binary.StringUtils;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -53,12 +50,12 @@ public class GoogleOauth2Controller {
 
 	@ResponseBody
 	@RequestMapping("/oauth2/google/callback")
-	public String authCallback(HttpSession session, @RequestParam String state, @RequestParam String code) {
+	public ResponseEntity<String> authCallback(HttpSession session, @RequestParam String state, @RequestParam String code) {
 
 		String sessionState = (String) session.getAttribute("state");
 
 		if (!StringUtils.equals(sessionState, state)) {
-			return "redirect:/error";
+			return ResponseEntity.badRequest().build();
 		}
 
 		UriComponents googleTokenUrl = UriComponentsBuilder.fromHttpUrl(properties.getToken().getUrl()).build();
@@ -71,25 +68,19 @@ public class GoogleOauth2Controller {
 		body.put("grant_type", "authorization_code");
 
 		try {
-			ResponseEntity<Map> postForEntity = restTemplate.postForEntity(googleTokenUrl.toUri(), body, Map.class);
-
-			return new StringBuilder()
-					.append("status ===========================><br>" + postForEntity.getStatusCode().name() + "<br>")
-					.append("header ===========================><br>" + postForEntity.getHeaders().toString() + "<br><br>")
-					.append("body ===========================><br>" + postForEntity.getBody().toString() + "<br><br>")
-					.toString();
+			return restTemplate.postForEntity(googleTokenUrl.toUri(), body, String.class);
 		} catch (RestClientException e) {
 			e.printStackTrace();
-			return "redirect:/error";
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
 	}
 
 	@ResponseBody
 	@RequestMapping("/me")
-	public String getEmail(@RequestHeader("Authorization") String authorization) {
+	public ResponseEntity<String> getEmail(@RequestHeader("Authorization") String authorization) {
 
 		if (!authorization.startsWith("Bearer")) {
-			return "redirect:/error";
+			return ResponseEntity.badRequest().build();
 		}
 
 		String idToken = authorization.split(" ")[1];
@@ -98,16 +89,10 @@ public class GoogleOauth2Controller {
 				.build();
 
 		try {
-			ResponseEntity<String> postForEntity = restTemplate.getForEntity(googleEmailOfUserUrl.toUriString(), String.class);
-
-			return new StringBuilder()
-					.append("status ===========================><br>" + postForEntity.getStatusCode().name() + "<br>")
-					.append("header ===========================><br>" + postForEntity.getHeaders().toString() + "<br><br>")
-					.append("body ===========================><br>" + postForEntity.getBody() + "<br><br>")
-					.toString();
+			return restTemplate.getForEntity(googleEmailOfUserUrl.toUriString(), String.class);
 		} catch (RestClientException e) {
 			e.printStackTrace();
-			return "redirect:/error";
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
 	}
 }
