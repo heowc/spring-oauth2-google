@@ -61,7 +61,7 @@ public class GoogleOauth2Controller {
 			return "redirect:/error";
 		}
 
-		UriComponents googleTokenUrl = UriComponentsBuilder.fromHttpUrl("https://accounts.google.com/o/oauth2/token").build();
+		UriComponents googleTokenUrl = UriComponentsBuilder.fromHttpUrl("https://www.googleapis.com/oauth2/v4/token").build();
 
 		Map<String, String> body = new HashMap<>();
 		body.put("code", code);
@@ -85,20 +85,25 @@ public class GoogleOauth2Controller {
 	}
 
 	@ResponseBody
-	@RequestMapping("/me/email")
-	public String getEmail(@RequestHeader("Authorization") String accessToken) {
+	@RequestMapping("/me")
+	public String getEmail(@RequestHeader("Authorization") String authorization) {
 
-		UriComponents googleEmailOfUserUrl = UriComponentsBuilder.fromHttpUrl("https://www.googleapis.com/auth/userinfo.email").build();
+		if (!authorization.startsWith("Bearer")) {
+			return "redirect:/error";
+		}
+
+		String idToken = authorization.split(" ")[1];
+		UriComponents googleEmailOfUserUrl = UriComponentsBuilder.fromHttpUrl("https://www.googleapis.com/oauth2/v3/tokeninfo")
+				.queryParam("id_token", idToken)
+				.build();
 
 		try {
-			HttpHeaders headers = new HttpHeaders();
-			headers.set("Authorization", String.format("Bearer %s", accessToken));
-			ResponseEntity<Map> postForEntity = restTemplate.exchange(googleEmailOfUserUrl.toUri(), HttpMethod.POST, new HttpEntity<>(headers), Map.class);
+			ResponseEntity<String> postForEntity = restTemplate.getForEntity(googleEmailOfUserUrl.toUriString(), String.class);
 
 			return new StringBuilder()
 					.append("status ===========================><br>" + postForEntity.getStatusCode().name() + "<br>")
 					.append("header ===========================><br>" + postForEntity.getHeaders().toString() + "<br><br>")
-					.append("body ===========================><br>" + postForEntity.getBody().toString() + "<br><br>")
+					.append("body ===========================><br>" + postForEntity.getBody() + "<br><br>")
 					.toString();
 		} catch (RestClientException e) {
 			e.printStackTrace();
