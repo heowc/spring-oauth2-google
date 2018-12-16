@@ -1,29 +1,27 @@
 package com.example.demo;
 
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConfigurationProperties(prefix = "google.oauth2")
+@Data
 public class GoogleOauth2Properties {
 
 	private String clientId;
 	private String clientSecret;
+	private Auth auth = new Auth();
+	private Token token = new Token();
 
-	public String getClientId() {
-		return clientId;
+	@Data
+	public static class Auth {
+		private String url;
+		private String callbackUrl;
 	}
 
-	public void setClientId(String clientId) {
-		this.clientId = clientId;
+	@Data
+	public static class Token {
+		private String url;
 	}
-
-	public String getClientSecret() {
-		return clientSecret;
-	}
-
-	public void setClientSecret(String clientSecret) {
-		this.clientSecret = clientSecret;
-	}
-
 }

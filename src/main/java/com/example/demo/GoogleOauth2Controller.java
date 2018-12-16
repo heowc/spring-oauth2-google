@@ -38,11 +38,11 @@ public class GoogleOauth2Controller {
 
 		session.setAttribute("state", UUID.randomUUID().toString());
 
-		UriComponents googleOauthUrl = UriComponentsBuilder.fromHttpUrl("https://accounts.google.com/o/oauth2/auth")
+		UriComponents googleOauthUrl = UriComponentsBuilder.fromHttpUrl(properties.getAuth().getUrl())
 				.queryParam("client_id", properties.getClientId())
 				.queryParam("response_type", "code")
 				.queryParam("scope", "openid email profile")
-				.queryParam("redirect_uri", "http://localhost:8080/oauth2/google/callback")
+				.queryParam("redirect_uri", properties.getAuth().getCallbackUrl())
 				.queryParam("state", session.getAttribute("state"))
 				.queryParam("access_type", "offline")
 				.queryParam("approval_prompt", "force")
@@ -61,13 +61,13 @@ public class GoogleOauth2Controller {
 			return "redirect:/error";
 		}
 
-		UriComponents googleTokenUrl = UriComponentsBuilder.fromHttpUrl("https://www.googleapis.com/oauth2/v4/token").build();
+		UriComponents googleTokenUrl = UriComponentsBuilder.fromHttpUrl(properties.getToken().getUrl()).build();
 
 		Map<String, String> body = new HashMap<>();
 		body.put("code", code);
 		body.put("client_id", properties.getClientId());
 		body.put("client_secret", properties.getClientSecret());
-		body.put("redirect_uri", "http://localhost:8080/oauth2/google/callback");
+		body.put("redirect_uri", properties.getAuth().getCallbackUrl());
 		body.put("grant_type", "authorization_code");
 
 		try {
