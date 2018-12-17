@@ -7,6 +7,9 @@ import java.util.UUID;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.codec.binary.StringUtils;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -76,6 +79,7 @@ public class SimpleGoogleOauth2Controller {
 		}
 	}
 
+	// Google + API 추가해야 함(https://console.developers.google.com/apis/api/plus.googleapis.com/overview)
 	@ResponseBody
 	@RequestMapping("/me")
 	public ResponseEntity<String> getGoogleUser(@RequestHeader("Authorization") String authorization) {
@@ -84,13 +88,13 @@ public class SimpleGoogleOauth2Controller {
 			return ResponseEntity.badRequest().build();
 		}
 
-		String idToken = authorization.split(" ")[1];
-		UriComponents googleUserUrl = UriComponentsBuilder.fromHttpUrl("https://www.googleapis.com/oauth2/v3/tokeninfo")
-				.queryParam("id_token", idToken)
-				.build();
+		String accessToken = authorization.split(" ")[1];
+		UriComponents googleUserUrl = UriComponentsBuilder.fromHttpUrl("https://www.googleapis.com/plus/v1/people/me").build();
 
 		try {
-			return restTemplate.getForEntity(googleUserUrl.toUriString(), String.class);
+			HttpHeaders headers = new HttpHeaders();
+			headers.setBearerAuth(accessToken);
+			return restTemplate.exchange(googleUserUrl.toUriString(), HttpMethod.GET, new HttpEntity<>(headers), String.class);
 		} catch (RestClientException e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
