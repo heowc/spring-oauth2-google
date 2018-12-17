@@ -7,7 +7,8 @@ import java.util.UUID;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.codec.binary.StringUtils;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,13 +20,13 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Controller
-public class GoogleOauth2Controller {
+public class SimpleGoogleOauth2Controller {
 
 	private RestTemplate restTemplate;
 
 	private GoogleOauth2Properties properties;
 
-	public GoogleOauth2Controller(RestTemplate restTemplate, GoogleOauth2Properties properties) {
+	public SimpleGoogleOauth2Controller(RestTemplate restTemplate, GoogleOauth2Properties properties) {
 		this.restTemplate = restTemplate;
 		this.properties = properties;
 	}
@@ -77,19 +78,19 @@ public class GoogleOauth2Controller {
 
 	@ResponseBody
 	@RequestMapping("/me")
-	public ResponseEntity<String> getEmail(@RequestHeader("Authorization") String authorization) {
+	public ResponseEntity<String> getGoogleUser(@RequestHeader("Authorization") String authorization) {
 
 		if (!authorization.startsWith("Bearer")) {
 			return ResponseEntity.badRequest().build();
 		}
 
 		String idToken = authorization.split(" ")[1];
-		UriComponents googleEmailOfUserUrl = UriComponentsBuilder.fromHttpUrl("https://www.googleapis.com/oauth2/v3/tokeninfo")
+		UriComponents googleUserUrl = UriComponentsBuilder.fromHttpUrl("https://www.googleapis.com/oauth2/v3/tokeninfo")
 				.queryParam("id_token", idToken)
 				.build();
 
 		try {
-			return restTemplate.getForEntity(googleEmailOfUserUrl.toUriString(), String.class);
+			return restTemplate.getForEntity(googleUserUrl.toUriString(), String.class);
 		} catch (RestClientException e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
