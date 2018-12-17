@@ -96,4 +96,24 @@ public class SimpleGoogleOauth2Controller {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
 	}
+
+	@ResponseBody
+	@RequestMapping("/refresh")
+	public ResponseEntity<String> refresh(@RequestParam(name = "refresh_token") String refreshToken) {
+
+		UriComponents googleTokenUrl = UriComponentsBuilder.fromHttpUrl(properties.getToken().getUrl()).build();
+
+		Map<String, String> body = new HashMap<>();
+		body.put("client_id", properties.getClientId());
+		body.put("client_secret", properties.getClientSecret());
+		body.put("refresh_token", refreshToken);
+		body.put("grant_type", "refresh_token");
+
+		try {
+			return restTemplate.postForEntity(googleTokenUrl.toUri(), body, String.class);
+		} catch (RestClientException e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+	}
 }
