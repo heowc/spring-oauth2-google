@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.View;
+import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -35,7 +37,7 @@ public class SimpleGoogleOauth2Controller {
 	}
 
 	@RequestMapping("/oauth2/google")
-	public String auth(HttpSession session) {
+	public View auth(HttpSession session) {
 
 		session.setAttribute("state", UUID.randomUUID().toString());
 
@@ -49,7 +51,7 @@ public class SimpleGoogleOauth2Controller {
 				.queryParam("approval_prompt", "force")
 				.build();
 
-		return "redirect:" + googleOauthUrl.toUriString();
+		return new RedirectView(googleOauthUrl.toUriString());
 	}
 
 	@ResponseBody

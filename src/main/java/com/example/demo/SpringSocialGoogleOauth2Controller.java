@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.View;
+import org.springframework.web.servlet.view.RedirectView;
 
 @Controller
 @RequestMapping("/social")
@@ -34,8 +36,8 @@ public class SpringSocialGoogleOauth2Controller {
 	}
 
 	@RequestMapping("/oauth2/google")
-	public String auth() {
-		return "redirect:" + connectionFactory.getOAuthOperations().buildAuthenticateUrl(GrantType.AUTHORIZATION_CODE, parameters);
+	public View auth() {
+		return new RedirectView(connectionFactory.getOAuthOperations().buildAuthenticateUrl(GrantType.AUTHORIZATION_CODE, parameters));
 	}
 
 	@ResponseBody
